@@ -195,6 +195,11 @@ func (s *Socket) Recv() (parts [][]byte, err error) {
 	return
 }
 
+// Makes a router socket always trap on errors
+func (s *Socket) SetRouterMandatory() {
+  s.setInt(C.ZMQ_ROUTER_MANDATORY, 1)
+}
+
 // Subscribe sets up a filter for incoming messages on Sub sockets.
 func (s *Socket) Subscribe(filter []byte) {
 	s.setBinary(C.ZMQ_SUBSCRIBE, filter)
