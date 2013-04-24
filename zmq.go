@@ -180,7 +180,7 @@ func (s *Socket) RecvPart() (part []byte, more bool, err error) {
 	var msg C.zmq_msg_t
 	C.zmq_msg_init(&msg)
 	r := C.zmq_msg_recv(&msg, s.sock, 0)
-    for (r == -1) && ((C.my_errno() == C.EINTR) || (C.my_errno() == C.EAGAIN)) {  
+    for ((r == -1) && ((C.my_errno() == C.EINTR) || (C.my_errno() == C.EAGAIN))) {  
 	    r = C.zmq_msg_recv(&msg, s.sock, 0)
     }
 	if r == -1 {
@@ -233,6 +233,9 @@ func Device(deviceType DeviceType, frontend, backend *Socket) {
 
 func zmqerr() error {
 	eno := C.my_errno()
+    if (eno == C.EINTR || eno == C.EAGAIN) {
+        panic("Shouldn't get here with EINTR or EAGAIN")
+    }
 	if eno == C.ETERM {
 		return ErrTerminated
 	} else if eno == C.EAGAIN {
