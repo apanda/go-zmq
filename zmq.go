@@ -119,6 +119,9 @@ func (s *Socket) Bind(endpoint string) (err error) {
 	cstr := C.CString(endpoint)
 	defer C.free(unsafe.Pointer(cstr))
 	r := C.zmq_bind(s.sock, cstr)
+    for (r == -1) && ((C.my_errno() == C.EINTR) || (C.my_errno() == C.EAGAIN)) {  
+	    r = C.zmq_bind(s.sock, cstr)
+    }
 	if r == -1 {
 		err = zmqerr()
 	}
@@ -130,6 +133,9 @@ func (s *Socket) Connect(endpoint string) (err error) {
 	cstr := C.CString(endpoint)
 	defer C.free(unsafe.Pointer(cstr))
 	r := C.zmq_connect(s.sock, cstr)
+    for (r == -1) && ((C.my_errno() == C.EINTR) || (C.my_errno() == C.EAGAIN)) {  
+	    r = C.zmq_connect(s.sock, cstr)
+    }
 	if r == -1 {
 		err = zmqerr()
 	}
@@ -146,7 +152,10 @@ func (s *Socket) SendPart(part []byte, more bool) (err error) {
 	if more {
 		flags = C.ZMQ_SNDMORE
 	}
-	r := C.zmq_msg_send(&msg, s.sock, flags)
+	r := C.zmq_msg_send(&msg, s.sock, flags) 
+    for (r == -1) && ((C.my_errno() == C.EINTR) || (C.my_errno() == C.EAGAIN)) {  
+	    r = C.zmq_msg_send(&msg, s.sock, flags) 
+    }
 	if r == -1 {
 		err = zmqerr()
 	}
@@ -171,6 +180,9 @@ func (s *Socket) RecvPart() (part []byte, more bool, err error) {
 	var msg C.zmq_msg_t
 	C.zmq_msg_init(&msg)
 	r := C.zmq_msg_recv(&msg, s.sock, 0)
+    for (r == -1) && ((C.my_errno() == C.EINTR) || (C.my_errno() == C.EAGAIN)) {  
+	    r = C.zmq_msg_recv(&msg, s.sock, 0)
+    }
 	if r == -1 {
 		err = zmqerr()
 		return
