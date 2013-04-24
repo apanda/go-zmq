@@ -19,6 +19,7 @@ import "C"
 import (
 	"errors"
 	"unsafe"
+    "fmt"
 )
 
 var (
@@ -153,8 +154,14 @@ func (s *Socket) SendPart(part []byte, more bool) (err error) {
 		flags = C.ZMQ_SNDMORE
 	}
 	r := C.zmq_msg_send(&msg, s.sock, flags) 
+    count := 0
     for (r == -1) && ((C.my_errno() == C.EINTR) || (C.my_errno() == C.EAGAIN)) {  
 	    r = C.zmq_msg_send(&msg, s.sock, flags) 
+        count++
+        if count >= 100000 {
+            fmt.Printf("Retried over 100000\n")
+            break
+        }
     }
 	if r == -1 {
 		err = zmqerr()
@@ -180,8 +187,14 @@ func (s *Socket) RecvPart() (part []byte, more bool, err error) {
 	var msg C.zmq_msg_t
 	C.zmq_msg_init(&msg)
 	r := C.zmq_msg_recv(&msg, s.sock, 0)
+    count := 0
     for ((r == -1) && ((C.my_errno() == C.EINTR) || (C.my_errno() == C.EAGAIN))) {  
 	    r = C.zmq_msg_recv(&msg, s.sock, 0)
+        count++
+        if count >= 100000 {
+            fmt.Printf("Retried over 100000\n")
+            break
+        }
     }
 	if r == -1 {
 		err = zmqerr()
