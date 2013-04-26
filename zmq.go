@@ -155,11 +155,11 @@ func (s *Socket) SendPart(part []byte, more bool) (err error) {
 	}
 	r := C.zmq_msg_send(&msg, s.sock, flags) 
     count := 0
-    for (r == -1) && ((C.my_errno() == C.EINTR) || (C.my_errno() == C.EAGAIN)) {  
+    for ((r == -1) && (C.my_errno() == C.EINTR)) {  
 	    r = C.zmq_msg_send(&msg, s.sock, flags) 
         count++
-        if count >= 100000 {
-            fmt.Printf("Retried over 100000\n")
+        if count >= 10 {
+            fmt.Printf("Retried sending over 10 times\n")
             break
         }
     }
@@ -187,8 +187,14 @@ func (s *Socket) RecvPart() (part []byte, more bool, err error) {
 	var msg C.zmq_msg_t
 	C.zmq_msg_init(&msg)
 	r := C.zmq_msg_recv(&msg, s.sock, 0)
-    for ((r == -1) && ((C.my_errno() == C.EINTR) || (C.my_errno() == C.EAGAIN))) {  
+    count := 0
+    for ((r == -1) && (C.my_errno() == C.EINTR)) {  
 	    r = C.zmq_msg_recv(&msg, s.sock, 0)
+        count++
+        if count >= 10 {
+            fmt.Printf("Retried receiving over 10 times\n")
+            break
+        }
     }
 	if r == -1 {
 		err = zmqerr()
