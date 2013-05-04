@@ -2,6 +2,10 @@ package zmq
 
 /*
 #include <zmq.h>
+static int my_errno() {
+	return errno;
+}
+
 */
 import "C"
 
@@ -100,6 +104,9 @@ func (p *PollSet) Poll(timeout time.Duration) (n int, err error) {
 		micros = -1
 	}
 	r := C.zmq_poll(&p.items[0], C.int(len(p.items)), micros)
+    for (r == -1) && ((C.my_errno() == C.EINTR) || (C.my_errno() == C.EAGAIN)) {  
+	    r = C.zmq_poll(&p.items[0], C.int(len(p.items)), micros)
+    }
 	if r == -1 {
 		err = zmqerr()
 	} else {
