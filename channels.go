@@ -73,7 +73,6 @@ func (c *Channels) processOutgoing() {
 			return
 		case msg := <-c.out:
 			if err := c.outsock.Send(msg); err != nil {
-                panic("ZMQ error")
 				c.errors <- err
 				goto Error
 			}
@@ -113,7 +112,6 @@ func (c *Channels) processSockets() {
 		}
 		_, err := poller.Poll(-1)
 		if err != nil {
-            panic("ZMQ error")
 			c.errors <- err
 			goto Error
 		}
@@ -123,7 +121,6 @@ func (c *Channels) processSockets() {
 			incoming, err := c.socket.Recv()
 			if err != nil {
 				if err != ErrTimeout {
-                    panic("ZMQ error")
 					c.errors <- err
 					goto Error
 				}
@@ -139,7 +136,6 @@ func (c *Channels) processSockets() {
 			}
 			if err := c.socket.Send(sending); err != nil {
 				if err != ErrTimeout {
-                    panic("ZMQ error")
 					c.errors <- err
 					goto Error
 				}
@@ -152,7 +148,6 @@ func (c *Channels) processSockets() {
 			// Receive a new outgoing message
 			outgoing, err := c.insock.Recv()
 			if err != nil {
-                panic("ZMQ error")
 				c.errors <- err
 				goto Error
 			}
@@ -166,7 +161,6 @@ func (c *Channels) processSockets() {
 			// Check for close message
 			_, err := c.closein.Recv()
 			if err != nil && err != ErrTimeout {
-                panic("ZMQ error")
 				c.errors <- err
 				goto Error
 			} else if err == nil {
